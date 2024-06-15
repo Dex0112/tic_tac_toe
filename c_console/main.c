@@ -31,7 +31,7 @@ int main() {
 
     // printf("You choose (%d, %d)\n", xCord, yCord);
 
-    Board *board = createBoard(10, 10);
+    Board *board = createBoard(3, 3);
 
     printBoard(board);
 
