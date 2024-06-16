@@ -93,14 +93,14 @@ def game(screen):
     restart_button = pygame.Rect(0, 0, 125, 50)
     quit_button = pygame.Rect(0, 0, 100, 50)
 
-    winner_text = None
+    result_text = None
     restart_text = font.render("Restart", True, "white")
     quit_text = font.render("Quit", True, "white")
 
     restart_button.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 30)
     quit_button.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 30)
 
-    winner_text_rect = None
+    result_text_rect = None
     restart_text_rect = restart_text.get_rect(center=restart_button.center)
     quit_text_rect = quit_text.get_rect(center=quit_button.center)
 
@@ -120,7 +120,7 @@ def game(screen):
 
     turn_index = 0
 
-    has_winner = False
+    has_result = False
 
     while True:
         for event in pygame.event.get():
@@ -130,7 +130,7 @@ def game(screen):
                 continue
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if has_winner:
+                if has_result:
                     if restart_button.collidepoint(event.pos):
                         return "game"
                         continue
@@ -146,24 +146,28 @@ def game(screen):
 
                 x, y = pixel_to_grid_coords(x, y)
 
-                if try_place_token(grid, x, y, turn_index):
+                player_turn = turn_index % 2
+
+                if try_place_token(grid, x, y, player_turn):
                     # Check for draw
                     # maybe change has_winner to has result
 
-                    has_winner = is_winner(grid, 3, turn_index)
+                    is_draw = turn_index >= len(grid) * len(grid[0]) - 1
+                    has_result = is_winner(grid, 3, player_turn) or is_draw
 
-                    if has_winner:
-                        winner_text = large_font.render(
-                            f"Player {turn_index + 1} Won!", True, (41, 41, 41)
+                    if has_result:
+                        result_text = large_font.render(
+                            f"Player {player_turn +
+                                      1} Won!", True, (41, 41, 41)
+                        ) if not is_draw else large_font.render(
+                            "DRAW", True, (41, 41, 41)
                         )
 
-                        winner_text_rect = winner_text.get_rect(
+                        result_text_rect = result_text.get_rect(
                             center=(SCREEN_WIDTH // 2,
                                     SCREEN_HEIGHT // 2 - 100))
 
-                        print(f"Player: {turn_index + 1} has won!")
-
-                    turn_index = 1 - turn_index
+                    turn_index += 1
 
                 continue
 
@@ -171,7 +175,7 @@ def game(screen):
 
         draw_board(grid, screen, BOARD_ICON, X_ICON, O_ICON)
 
-        if has_winner:
+        if has_result:
             pygame.draw.rect(screen, (200, 200, 200), background)
             pygame.draw.rect(screen, (230, 230, 230), forground)
 
@@ -181,7 +185,7 @@ def game(screen):
             screen.blit(restart_text, restart_text_rect)
             screen.blit(quit_text, quit_text_rect)
 
-            screen.blit(winner_text, winner_text_rect)
+            screen.blit(result_text, result_text_rect)
 
         pygame.display.flip()
 
