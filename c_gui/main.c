@@ -2,9 +2,12 @@
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mouse.h>
+#include <SDL2/SDL_pixels.h>
 #include <SDL2/SDL_rect.h>
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_surface.h>
+#include <SDL2/SDL_timer.h>
+#include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_video.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -12,6 +15,7 @@
 #define WINDOW_WIDTH 720
 #define WINDOW_HEIGHT 720
 
+// For buttons I guess
 SDL_Texture *load_texture(SDL_Renderer *renderer, char *path) {
     SDL_Surface *loaded_surface = IMG_Load(path);
 
@@ -23,7 +27,14 @@ SDL_Texture *load_texture(SDL_Renderer *renderer, char *path) {
     return loaded_texture;
 }
 
+// Setup(SDL_Window **window, **renderer, **font) just like returns all the
+// necessary bits
+
 int main() {
+    TTF_Init();
+    TTF_Font *font =
+        TTF_OpenFont("/usr/share/fonts/gsfonts/NimbusRoman-Italic.otf", 42);
+
     SDL_Init(SDL_INIT_VIDEO);
 
     SDL_Window *window = SDL_CreateWindow("Tic-Tac-Toe", SDL_WINDOWPOS_CENTERED,
@@ -31,6 +42,14 @@ int main() {
                                           WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
     SDL_Renderer *renderer =
         SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+    SDL_Color white = {255, 255, 255};
+
+    SDL_Surface *message_surface = TTF_RenderText_Blended(font, "Test", white);
+
+    SDL_Texture *message_texture = SDL_CreateTextureFromSurface(renderer, message_surface);
+
+    SDL_FreeSurface(message_surface);
 
     IMG_Init(IMG_INIT_PNG);
 
@@ -78,6 +97,17 @@ int main() {
 
         SDL_RenderCopy(renderer, board_texture, NULL, &board_rect);
 
+        SDL_Rect rect = {50, 50, 100, 60};
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderFillRect(renderer, &rect);
+
+        SDL_Rect message_rect = {rect.x, rect.y, 76, 44};
+        SDL_QueryTexture(message_texture, NULL, NULL, &message_rect.w, &message_rect.h);
+        message_rect.x += (rect.w - message_rect.w) / 2;
+        message_rect.y += (rect.h - message_rect.h) / 2;
+
+        SDL_RenderCopy(renderer, message_texture, NULL, &message_rect);
+
         for (int x = 0; x < 3; x++) {
             for (int y = 0; y < 3; y++) {
                 if (grid[x][y] == -1) {
@@ -101,14 +131,19 @@ int main() {
         }
 
         SDL_RenderPresent(renderer);
+        // Set ticking speed
+        SDL_Delay(10);
     }
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
 
+    SDL_DestroyTexture(message_texture);
     SDL_DestroyTexture(board_texture);
     SDL_DestroyTexture(o_texture);
     SDL_DestroyTexture(x_texture);
+
+    TTF_CloseFont(font);
 
     printf("Goodbye\n");
 
