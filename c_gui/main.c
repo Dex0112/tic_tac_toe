@@ -41,11 +41,7 @@ int main() {
     bool running = true;
     SDL_Event event;
 
-    int grid[3][3] = {
-        { -1, -1, -1 },
-        { -1, -1, -1 },
-        { -1, -1, -1 }
-    };
+    int grid[3][3] = {{-1, -1, -1}, {-1, -1, -1}, {-1, -1, -1}};
 
     int turn_index = 0;
 
@@ -80,12 +76,11 @@ int main() {
 
         SDL_Rect board_rect = {0, 0, WINDOW_WIDTH, WINDOW_HEIGHT};
 
-
         SDL_RenderCopy(renderer, board_texture, NULL, &board_rect);
 
         for (int x = 0; x < 3; x++) {
             for (int y = 0; y < 3; y++) {
-                if(grid[x][y] == -1) {
+                if (grid[x][y] == -1) {
                     continue;
                 }
 
@@ -93,8 +88,10 @@ int main() {
                 int new_y = y * WINDOW_HEIGHT / 3;
 
                 SDL_Rect token_rect = {
-                    new_x, new_y,
-                    WINDOW_WIDTH / 3, WINDOW_HEIGHT / 3,
+                    new_x,
+                    new_y,
+                    WINDOW_WIDTH / 3,
+                    WINDOW_HEIGHT / 3,
                 };
 
                 SDL_Texture *texture = grid[x][y] == 0 ? x_texture : o_texture;
@@ -112,6 +109,8 @@ int main() {
     SDL_DestroyTexture(board_texture);
     SDL_DestroyTexture(o_texture);
     SDL_DestroyTexture(x_texture);
+
+    printf("Goodbye\n");
 
     return 0;
 }
