@@ -1,6 +1,8 @@
 #ifndef TIC_TAC_TOE
 #define TIC_TAC_TOE
 
+#include <stdbool.h>
+
 typedef enum {
     X,
     O,
@@ -19,9 +21,11 @@ typedef struct {
     Board *board;
 } Game;
 
+Game *create_game(unsigned int width, unsigned int height);
 Board *create_board(unsigned int width, unsigned int height);
 void free_board(Board *board);
+void free_game(Game *game);
 bool try_place(Game *game, unsigned int x, unsigned int y);
-// Check for winner
+bool is_draw(Game *game);
 
 #endif

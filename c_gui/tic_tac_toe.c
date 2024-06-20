@@ -64,3 +64,14 @@ bool try_place(Game *game, unsigned int x, unsigned int y) {
 
     return true;
 }
+
+// Only call this After checking for a win
+bool is_draw(Game *game) {
+    Board *board = game->board;
+
+    if (game->turn_index >= board->width * board->height) {
+        return true;
+    }
+
+    return false;
+}
