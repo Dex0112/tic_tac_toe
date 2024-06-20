@@ -9,7 +9,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-// I do not really know where to put this
 int main() {
     TTF_Init();
 
