@@ -13,14 +13,14 @@
 
 void grid_to_pixel_coords(unsigned int width, unsigned int height, int *x,
                           int *y) {
-    *x *= (WINDOW_WIDTH / width);
-    *y *= (WINDOW_HEIGHT / height);
+    *x *= WINDOW_WIDTH / width;
+    *y *= WINDOW_HEIGHT / height;
 }
 
 void pixel_to_grid_coords(unsigned int width, unsigned int height, int *x,
                           int *y) {
-    *x /= (WINDOW_WIDTH / width);
-    *y /= (WINDOW_HEIGHT / height);
+    *x /= WINDOW_WIDTH / width;
+    *y /= WINDOW_HEIGHT / height;
 }
 
 // When working return void * instead
