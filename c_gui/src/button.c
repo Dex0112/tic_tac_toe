@@ -22,6 +22,7 @@ bool collide_point(Button button, int x, int y) {
 void render_button(SDL_Renderer *renderer, Button button) {
     SDL_SetRenderDrawColor(renderer, button.color.r, button.color.g,
                            button.color.b, button.color.a);
+
     SDL_Rect background_rect = {button.x, button.y, button.width,
                                 button.height};
     SDL_RenderFillRect(renderer, &background_rect);

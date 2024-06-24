@@ -1,6 +1,6 @@
+#include "tic_tac_toe.h"
 #include <stdbool.h>
 #include <stdlib.h>
-#include "tic_tac_toe.h"
 
 Game *create_game(unsigned int width, unsigned int height) {
     Game *game = (Game *)malloc(sizeof(Game));
@@ -63,6 +63,62 @@ bool try_place(Game *game, unsigned int x, unsigned int y) {
     game->board->grid[x][y] = token;
 
     return true;
+}
+
+GAME_RESULT has_result(Game *game, CellState target) {
+    typedef struct {
+        int x;
+        int y;
+    } Vector;
+
+    // Implement the algorithm used in the python_gui project
+
+    Board *board = game->board;
+
+    // dirs = [(1, 0), (0, 1), (1, 1), (-1, 1)]
+
+    Vector dirs[] = {
+        {1, 0},
+        {0, 1},
+        {1, 1},
+        {-1, 1},
+    };
+
+    for (int i = 0; i < board->width; i++) {
+        for (int j = 0; j < board->height; j++) {
+            // set pivot and look around
+            if (board->grid[i][j] != target) {
+                continue;
+            }
+
+            Vector pivot = {i, j};
+
+            for (int idx = 0; idx < sizeof(dirs) / sizeof(dirs[0]); idx++) {
+                // Algorithm
+                int count = 1;
+                int x = pivot.x + dirs[idx].x, y = pivot.y + dirs[idx].y;
+
+                while (x < board->width && y < board->height && x >= 0 &&
+                       y >= 0 && board->grid[x][y] == target) {
+                    count++;
+
+                    // Add this winning number to the game struct I've decided
+                    if (count >= 3) {
+                        return WIN;
+                    }
+
+                    x += dirs[idx].x;
+                    y += dirs[idx].y;
+                }
+            }
+        }
+    }
+
+    if (game->turn_index >= board->width * board->height) {
+        return DRAW;
+    }
+
+    return NONE;
 }
 
 // Only call this After checking for a win

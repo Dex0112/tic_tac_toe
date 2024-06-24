@@ -4,7 +4,6 @@
 #include "utils.h"
 #include "constants.h"
 #include <SDL2/SDL_render.h>
-#include <stdio.h>
 
 State main_menu(SDL_Renderer *renderer) {
     State next_state = QUIT;

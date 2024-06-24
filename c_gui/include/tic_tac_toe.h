@@ -9,6 +9,12 @@ typedef enum {
     EMPTY,
 } CellState;
 
+typedef enum {
+    WIN,
+    DRAW,
+    NONE,
+} GAME_RESULT;
+
 typedef struct {
     unsigned int width;
     unsigned int height;
@@ -26,6 +32,8 @@ Board *create_board(unsigned int width, unsigned int height);
 void free_board(Board *board);
 void free_game(Game *game);
 bool try_place(Game *game, unsigned int x, unsigned int y);
+GAME_RESULT has_result(Game *game, CellState target);
+// Is win returns game result
 bool is_draw(Game *game);
 
 #endif

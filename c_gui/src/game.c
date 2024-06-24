@@ -71,6 +71,18 @@ State game(SDL_Renderer *renderer) {
                 if (try_place(game, x, y)) {
                     game->turn_index++;
                     // Check if draw or win
+
+                    GAME_RESULT result = has_result(game, X);
+
+                    if (result != NONE) {
+                        printf("There is a result now\n");
+
+                        if (result == WIN) {
+                            printf("Winner!\n");
+                        } else {
+                            printf("DRAW!\n");
+                        }
+                    }
                 }
             }
         }
