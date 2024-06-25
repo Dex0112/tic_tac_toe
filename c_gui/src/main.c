@@ -49,7 +49,5 @@ int main() {
 
     SDL_Quit();
 
-    printf("Goodbye\n");
-
     return 0;
 }

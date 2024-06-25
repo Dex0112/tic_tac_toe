@@ -114,7 +114,7 @@ GAME_RESULT has_result(Game *game, CellState target) {
         }
     }
 
-    if (game->turn_index >= board->width * board->height) {
+    if (game->turn_index >= board->width * board->height - 1) {
         return DRAW;
     }
 

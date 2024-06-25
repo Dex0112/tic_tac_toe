@@ -131,15 +131,30 @@ State game(SDL_Renderer *renderer) {
             }
 
             if (event.type == SDL_MOUSEBUTTONDOWN) {
-                if (game_over)
-                    continue;
-
                 if (event.button.button != SDL_BUTTON_LEFT)
                     continue;
 
                 int x, y;
 
                 SDL_GetMouseState(&x, &y);
+
+                if (game_over) {
+                    if(collide_point(*restart_button, x, y)) {
+                        running = false;
+                        next_state = GAME;
+                        
+                        continue;
+                    }
+
+                    if(collide_point(*quit_button, x, y)) {
+                        running = false;
+                        next_state = QUIT;
+
+                        continue;
+                    }
+
+                    continue;
+                }
 
                 pixel_to_grid_coords(board->width, board->height, &x, &y);
 
@@ -230,5 +245,5 @@ State game(SDL_Renderer *renderer) {
 
     TTF_CloseFont(regular_font);
 
-    return QUIT;
+    return next_state;
 }
