@@ -22,6 +22,8 @@ typedef struct {
     SDL_Rect foreground_rect;
     SDL_Color background_color;
     SDL_Color foreground_color;
+    SDL_Texture *result_text;
+    SDL_Rect result_rect;
 } GameOverPanel;
 
 void grid_to_pixel_coords(unsigned int width, unsigned int height, int *x,
@@ -62,6 +64,8 @@ void render_panel(SDL_Renderer *renderer, GameOverPanel panel) {
 
     SDL_RenderFillRect(renderer, &panel.foreground_rect);
 
+    SDL_RenderCopy(renderer, panel.result_text, NULL, &panel.result_rect);
+
     render_button(renderer, *panel.replay_button);
     render_button(renderer, *panel.quit_button);
 }
@@ -77,23 +81,27 @@ State game(SDL_Renderer *renderer) {
     SDL_Texture *x_texture = load_texture(renderer, "./gfx/Cross.png");
     SDL_Texture *o_texture = load_texture(renderer, "./gfx/Circle.png");
 
-    TTF_Font *font =
+    TTF_Font *regular_font =
         TTF_OpenFont("/usr/share/fonts/gnu-free/FreeSansBold.otf", 28);
+
+    TTF_Font *large_font =
+        TTF_OpenFont("/usr/share/fonts/gnu-free/FreeSansBold.otf", 42);
 
     SDL_Color button_color = {0, 0, 0, 255};
     SDL_Color text_color = {255, 255, 255, 255};
+    SDL_Color result_text_color = {0, 0, 0, 0};
     SDL_Color panel_background_color = {230, 230, 230, 255};
     SDL_Color panel_foreground_color = {200, 200, 200, 255};
 
     SDL_Texture *restart_text =
-        load_text(renderer, "Restart", font, text_color);
-    Button *restart_button =
-        create_button(125, 50, WINDOW_CENTER_X, WINDOW_CENTER_Y - 30,
-                      button_color, restart_text);
+        load_text(renderer, "Restart", regular_font, text_color);
+    Button *restart_button = create_button(
+        125, 50, WINDOW_CENTER_X, WINDOW_CENTER_Y, button_color, restart_text);
 
-    SDL_Texture *quit_text = load_text(renderer, "Quit", font, text_color);
+    SDL_Texture *quit_text =
+        load_text(renderer, "Quit", regular_font, text_color);
     Button *quit_button =
-        create_button(100, 50, WINDOW_CENTER_X, WINDOW_CENTER_Y + 30,
+        create_button(100, 50, WINDOW_CENTER_X, WINDOW_CENTER_Y + 60,
                       button_color, quit_text);
 
     SDL_Rect foreground_rect = {WINDOW_CENTER_X, WINDOW_CENTER_Y, 475, 475};
@@ -123,6 +131,9 @@ State game(SDL_Renderer *renderer) {
             }
 
             if (event.type == SDL_MOUSEBUTTONDOWN) {
+                if (game_over)
+                    continue;
+
                 if (event.button.button != SDL_BUTTON_LEFT)
                     continue;
 
@@ -133,14 +144,44 @@ State game(SDL_Renderer *renderer) {
                 pixel_to_grid_coords(board->width, board->height, &x, &y);
 
                 if (try_place(game, x, y)) {
-                    game->turn_index++;
-                    // Check if draw or win
-
-                    GAME_RESULT result = has_result(game, X);
+                    GAME_RESULT result =
+                        has_result(game, game->turn_index % 2 == 0 ? X : O);
 
                     if (result != NONE) {
                         game_over = true;
+
+                        char *text;
+
+                        switch (result) {
+                        case WIN:
+                            text = game->turn_index % 2 == 0 ? "X Wins!"
+                                                             : "O Wins!";
+                            break;
+                        case DRAW:
+                            text = "Draw!";
+                            break;
+                        default:
+                            printf("Unrecognized game result");
+                            break;
+                        }
+
+                        panel.result_text = load_text(
+                            renderer, text, large_font, result_text_color);
+
+                        SDL_Rect text_rect = {WINDOW_CENTER_X,
+                                              WINDOW_CENTER_Y - 60, 0, 0};
+                        SDL_QueryTexture(panel.result_text, NULL, NULL,
+                                         &text_rect.w, &text_rect.h);
+
+                        text_rect.x -= text_rect.w / 2;
+                        text_rect.y -= text_rect.h / 2;
+
+                        panel.result_rect = text_rect;
+
+                        continue;
                     }
+
+                    game->turn_index++;
                 }
             }
         }
@@ -187,7 +228,7 @@ State game(SDL_Renderer *renderer) {
     free_button(restart_button);
     free_button(quit_button);
 
-    TTF_CloseFont(font);
+    TTF_CloseFont(regular_font);
 
     return QUIT;
 }
