@@ -1,15 +1,28 @@
+#include "button.h"
 #include "constants.h"
 #include "state.h"
 #include "tic_tac_toe.h"
+#include "utils.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mouse.h>
+#include <SDL2/SDL_pixels.h>
 #include <SDL2/SDL_rect.h>
 #include <SDL2/SDL_render.h>
+#include <SDL2/SDL_surface.h>
 #include <SDL2/SDL_timer.h>
 #include <stdbool.h>
 #include <stdio.h>
+
+typedef struct {
+    Button *replay_button;
+    Button *quit_button;
+    SDL_Rect background_rect;
+    SDL_Rect foreground_rect;
+    SDL_Color background_color;
+    SDL_Color foreground_color;
+} GameOverPanel;
 
 void grid_to_pixel_coords(unsigned int width, unsigned int height, int *x,
                           int *y) {
@@ -36,8 +49,26 @@ SDL_Texture *load_texture(SDL_Renderer *renderer, char *path) {
     return loaded_texture;
 }
 
+void render_panel(SDL_Renderer *renderer, GameOverPanel panel) {
+    SDL_SetRenderDrawColor(renderer, panel.background_color.r,
+                           panel.background_color.b, panel.background_color.g,
+                           panel.background_color.a);
+
+    SDL_RenderFillRect(renderer, &panel.background_rect);
+
+    SDL_SetRenderDrawColor(renderer, panel.foreground_color.r,
+                           panel.foreground_color.b, panel.foreground_color.g,
+                           panel.foreground_color.a);
+
+    SDL_RenderFillRect(renderer, &panel.foreground_rect);
+
+    render_button(renderer, *panel.replay_button);
+    render_button(renderer, *panel.quit_button);
+}
+
 State game(SDL_Renderer *renderer) {
     bool running = true;
+    bool game_over = false;
     State next_state = QUIT;
 
     SDL_Event event;
@@ -45,6 +76,39 @@ State game(SDL_Renderer *renderer) {
     SDL_Texture *board_texture = load_texture(renderer, "./gfx/Board.png");
     SDL_Texture *x_texture = load_texture(renderer, "./gfx/Cross.png");
     SDL_Texture *o_texture = load_texture(renderer, "./gfx/Circle.png");
+
+    TTF_Font *font =
+        TTF_OpenFont("/usr/share/fonts/gnu-free/FreeSansBold.otf", 28);
+
+    SDL_Color button_color = {0, 0, 0, 255};
+    SDL_Color text_color = {255, 255, 255, 255};
+    SDL_Color panel_background_color = {230, 230, 230, 255};
+    SDL_Color panel_foreground_color = {200, 200, 200, 255};
+
+    SDL_Texture *restart_text =
+        load_text(renderer, "Restart", font, text_color);
+    Button *restart_button =
+        create_button(125, 50, WINDOW_CENTER_X, WINDOW_CENTER_Y - 30,
+                      button_color, restart_text);
+
+    SDL_Texture *quit_text = load_text(renderer, "Quit", font, text_color);
+    Button *quit_button =
+        create_button(100, 50, WINDOW_CENTER_X, WINDOW_CENTER_Y + 30,
+                      button_color, quit_text);
+
+    SDL_Rect foreground_rect = {WINDOW_CENTER_X, WINDOW_CENTER_Y, 475, 475};
+    SDL_Rect background_rect = {WINDOW_CENTER_X, WINDOW_CENTER_Y, 500, 500};
+
+    foreground_rect.x -= foreground_rect.w / 2;
+    background_rect.x -= background_rect.w / 2;
+
+    foreground_rect.y -= foreground_rect.h / 2;
+    background_rect.y -= background_rect.h / 2;
+
+    // TODO: I need to compute the correct position and size for the panel rects
+    GameOverPanel panel = {restart_button,         quit_button,
+                           background_rect,        foreground_rect,
+                           panel_background_color, panel_foreground_color};
 
     Game *game = create_game(3, 3);
     Board *board = game->board;
@@ -75,13 +139,7 @@ State game(SDL_Renderer *renderer) {
                     GAME_RESULT result = has_result(game, X);
 
                     if (result != NONE) {
-                        printf("There is a result now\n");
-
-                        if (result == WIN) {
-                            printf("Winner!\n");
-                        } else {
-                            printf("DRAW!\n");
-                        }
+                        game_over = true;
                     }
                 }
             }
@@ -112,6 +170,9 @@ State game(SDL_Renderer *renderer) {
             }
         }
 
+        if (game_over)
+            render_panel(renderer, panel);
+
         SDL_RenderPresent(renderer);
 
         SDL_Delay(10);
@@ -122,6 +183,11 @@ State game(SDL_Renderer *renderer) {
     SDL_DestroyTexture(board_texture);
     SDL_DestroyTexture(x_texture);
     SDL_DestroyTexture(o_texture);
+
+    free_button(restart_button);
+    free_button(quit_button);
+
+    TTF_CloseFont(font);
 
     return QUIT;
 }
